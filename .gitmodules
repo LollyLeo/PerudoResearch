@@ -1,0 +1,3 @@
+[submodule "open_spiel_with_perudo"]
+	path = open_spiel_with_perudo
+	url = https://github.com/LollyLeo/open_spiel_with_perudo
