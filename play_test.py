@@ -92,6 +92,55 @@ def multiplay(game, solver):
     print("Total score you vs machine:")
     print(f'{wins}-{losses}')
 
+
+def solver_vs(game, solver1, solver2, n=1):
+    VALUES = game.get_parameters()
+    VALUES["liarbid"] = game.max_history_length() - 1 - VALUES["numdice"] * VALUES["players"]
+
+    wins1 = 0
+    wins2 = 0
+
+    for _ in range(n):
+        assign = random.choice([0, 1])
+
+        state = game.new_initial_state()
+
+        while state.is_chance_node():
+            outcomes = state.chance_outcomes()
+            values, weights = zip(*outcomes)
+            action = random.choices(values, weights=weights, k=1)[0]
+            state.apply_action(action)
+
+        while not state.is_terminal():
+            current = state.current_player()
+            if current == 0:
+                solver = solver1 if assign == 0 else solver2
+            else:
+                solver = solver2 if assign == 0 else solver1
+
+            policy = solver.average_policy()
+            action_probs = policy.action_probabilities(state)
+            actions = list(action_probs.keys())
+            probs = list(action_probs.values())
+            action = random.choices(actions, weights=probs, k=1)[0]
+
+            state.apply_action(action)
+
+        rewards = state.rewards()
+        if assign == 0:
+            if rewards[0] == 1:
+                wins1 += 1
+            if rewards[1] == 1:
+                wins2 += 1
+        else:
+            if rewards[0] == 1:
+                wins2 += 1
+            if rewards[1] == 1:
+                wins1 += 1
+
+    return (wins1, wins2)
+
+
 if __name__ == "__main__":
     import pyspiel
     from save_load import *
